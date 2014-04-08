@@ -3,10 +3,11 @@ function crowbar() {
 
   window.URL = (window.URL || window.webkitURL);
 
-  // var script = document.createElement('script');
+  var script = document.createElement('script');
+  script.src = "http://d3js.org/d3.v3.min.js";
+  document.head.appendChild(script);
+  
   initialize();
-  // script.src = "http://d3js.org/d3.v3.min.js";
-  // document.head.appendChild(script);
 
   function initialize() {
     var documents = [window.document],
