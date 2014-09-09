@@ -1,4 +1,4 @@
-function crowbar() {
+function gooseneck() {
   var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
 
   window.URL = (window.URL || window.webkitURL);
@@ -30,7 +30,7 @@ function crowbar() {
     } else if (SVGSources.length > 0) {
       download(SVGSources[0]);
     } else {
-      alert("The Crowbar couldn’t find any SVG nodes.");
+      alert("The Gooseneck couldn’t find any SVG nodes.");
     }
   }
 
@@ -61,16 +61,16 @@ function crowbar() {
     var body = d3.select("body");
 
     var buttons = body.append("div")
-        .attr("class", "svg-crowbar")
+        .attr("class", "svg-gooseneck")
         .style("z-index", 1e7)
         .style("position", "absolute")
         .style("top", 0)
         .style("left", 0);
 
-    var button = buttons.selectAll(".crowbar-button")
+    var button = buttons.selectAll(".gooseneck-button")
         .data(sources)
       .enter().append("div")
-        .attr("class", "crowbar-button")
+        .attr("class", "gooseneck-button")
         .style("position", "absolute")
         .style("top", function(d) { return (d.top + document.body.scrollTop) + "px"; })
         .style("left", function(d) { return (document.body.scrollLeft + d.left) + "px"; })
@@ -94,10 +94,10 @@ function crowbar() {
           download(d);
         });
 
-    buttons.selectAll(".crowbar-button").call(drag);
+    buttons.selectAll(".gooseneck-button").call(drag);
 
     var html = body.append("div")
-        .attr("class", "svg-crowbar")
+        .attr("class", "svg-gooseneck")
         .style("background", "rgba(255, 255, 255, 0.7)")
         .style("position", "fixed")
         .style("left", 0)
@@ -113,7 +113,7 @@ function crowbar() {
   }
 
   function cleanup() {
-    d3.selectAll(".svg-crowbar").remove();
+    d3.selectAll(".svg-gooseneck").remove();
 	d3.selectAll("canvas#savepng").remove();
   }
 
@@ -129,7 +129,7 @@ function crowbar() {
       var svg = d3.select(this);
       svg.attr("version", "1.1")
         .insert("defs", ":first-child")
-          .attr("class", "svg-crowbar")
+          .attr("class", "svg-gooseneck")
         .append("style")
           .attr("type", "text/css");
 
