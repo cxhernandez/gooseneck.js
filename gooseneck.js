@@ -3,20 +3,31 @@ function gooseneck() {
 
   window.URL = (window.URL || window.webkitURL);
 
-  var script = document.createElement('script');
-  script.src = "http://d3js.org/d3.v3.min.js";
-  document.head.appendChild(script);
-  
+  var body = document.body;
+
+  var prefix = {
+    xmlns: "http://www.w3.org/2000/xmlns/",
+    xlink: "http://www.w3.org/1999/xlink",
+    svg: "http://www.w3.org/2000/svg"
+  }
+
   initialize();
 
   function initialize() {
     var documents = [window.document],
         SVGSources = [];
-    d3.selectAll("iframe").each(function() {
-      if (this.contentDocument) {
-        documents.push(this.contentDocument);
+        iframes = document.querySelectorAll("iframe");
+
+    [].forEach.call(iframes, function(el) {
+      try {
+        if (el.contentDocument) {
+          documents.push(el.contentDocument);
+        }
+      } catch(err) {
+        console.log(err)
       }
     });
+
     documents.forEach(function(doc) {
       var styles = getStyles(doc);
       var newSources = getSources(doc, styles);
@@ -30,22 +41,12 @@ function gooseneck() {
     } else if (SVGSources.length > 0) {
       download(SVGSources[0]);
     } else {
-      alert("The Gooseneck couldn’t find any SVG nodes.");
+      alert("Gooseneck couldn’t find any SVG nodes.");
     }
   }
 
   function createPopover(sources) {
     cleanup();
-
-  var drag = d3.behavior.drag()
-      .origin(function() {
-        var el = d3.select(this)
-        return {
-          x: el.style("left").replace("px", ""),
-          y: el.style("top").replace("px", "")
-        }
-      })
-      .on("drag", dragmove);
 
     sources.forEach(function(s1) {
       sources.forEach(function(s2) {
@@ -56,106 +57,116 @@ function gooseneck() {
           }
         }
       })
-    })
+    });
 
-    var body = d3.select("body");
+    var buttonsContainer = document.createElement("div");
+    body.appendChild(buttonsContainer);
 
-    var buttons = body.append("div")
-        .attr("class", "svg-gooseneck")
-        .style("z-index", 1e7)
-        .style("position", "absolute")
-        .style("top", 0)
-        .style("left", 0);
+    buttonsContainer.setAttribute("class", "svg-gooseneck");
+    buttonsContainer.style["z-index"] = 1e7;
+    buttonsContainer.style["position"] = "absolute";
+    buttonsContainer.style["top"] = 0;
+    buttonsContainer.style["left"] = 0;
 
-    var button = buttons.selectAll(".gooseneck-button")
-        .data(sources)
-      .enter().append("div")
-        .attr("class", "gooseneck-button")
-        .style("position", "absolute")
-        .style("top", function(d) { return (d.top + document.body.scrollTop) + "px"; })
-        .style("left", function(d) { return (document.body.scrollLeft + d.left) + "px"; })
-        .style("padding", "4px")
-        .style("border-radius", "3px")
-        .style("color", "white")
-        .style("text-align", "center")
-        .style("font-family", "'Helvetica Neue'")
-        .style("background", "rgba(0, 0, 0, 0.8)")
-        .style("box-shadow", "0px 4px 18px rgba(0, 0, 0, 0.4)")
-        .style("cursor", "move")
-        .text(function(d, i) { return "SVG #" + i + ": " + (d.id ? "#" + d.id : "") + (d.class ? "." + d.class : "")})
-      .append("button")
-        .style("width", "150px")
-        .style("font-size", "12px")
-        .style("line-height", "1.4em")
-        .style("margin", "5px 0 0 0")
-        .text("Download")
-        .on("click", function(d, i) {
-          d3.event.preventDefault();
-          download(d);
-        });
 
-    buttons.selectAll(".gooseneck-button").call(drag);
 
-    var html = body.append("div")
-        .attr("class", "svg-gooseneck")
-        .style("background", "rgba(255, 255, 255, 0.7)")
-        .style("position", "fixed")
-        .style("left", 0)
-        .style("top", 0)
-        .style("width", "100%")
-        .style("height", "100%");
+    var background = document.createElement("div");
+    body.appendChild(background);
 
-    function dragmove(d) {
-      d3.select(this)
-          .style("left", d3.event.x + "px")
-          .style("top", d3.event.y + "px");
-    }
+    background.setAttribute("class", "svg-gooseneck");
+    background.style["background"] = "rgba(255, 255, 255, 0.7)";
+    background.style["position"] = "fixed";
+    background.style["left"] = 0;
+    background.style["top"] = 0;
+    background.style["width"] = "100%";
+    background.style["height"] = "100%";
+
+    sources.forEach(function(d, i) {
+      var buttonWrapper = document.createElement("div");
+      buttonsContainer.appendChild(buttonWrapper);
+      buttonWrapper.setAttribute("class", "svg-gooseneck");
+      buttonWrapper.style["position"] = "absolute";
+      buttonWrapper.style["top"] = (d.top + document.body.scrollTop) + "px";
+      buttonWrapper.style["left"] = (document.body.scrollLeft + d.left) + "px";
+      buttonWrapper.style["padding"] = "4px";
+      buttonWrapper.style["border-radius"] = "3px";
+      buttonWrapper.style["color"] = "white";
+      buttonWrapper.style["text-align"] = "center";
+      buttonWrapper.style["font-family"] = "'Helvetica Neue'";
+      buttonWrapper.style["background"] = "rgba(0, 0, 0, 0.8)";
+      buttonWrapper.style["box-shadow"] = "0px 4px 18px rgba(0, 0, 0, 0.4)";
+      buttonWrapper.style["cursor"] = "move";
+      buttonWrapper.textContent =  "SVG #" + i + ": " + (d.id ? "#" + d.id : "") + (d.class ? "." + d.class : "");
+
+      var button = document.createElement("button");
+      buttonWrapper.appendChild(button);
+      button.setAttribute("data-source-id", i)
+      button.style["width"] = "150px";
+      button.style["font-size"] = "12px";
+      button.style["line-height"] = "1.4em";
+      button.style["margin"] = "5px 0 0 0";
+      button.textContent = "Download";
+
+      button.onclick = function(el) {
+        // console.log(el, d, i, sources)
+        download(d);
+      };
+
+    });
+
   }
 
   function cleanup() {
-    d3.selectAll(".svg-gooseneck").remove();
-	d3.selectAll("canvas#savepng").remove();
-  }
+    var gooseneckElements = document.querySelectorAll(".svg-gooseneck");
 
+    [].forEach.call(gooseneckElements, function(el) {
+      el.parentNode.removeChild(el);
+    });
+  }
 
 
   function getSources(doc, styles) {
     var svgInfo = [],
-        svgs = d3.select(doc).selectAll("svg");
+        svgs = doc.querySelectorAll("svg");
 
     styles = (styles === undefined) ? "" : styles;
 
-    svgs.each(function () {
-      var svg = d3.select(this);
-      svg.attr("version", "1.1")
-        .insert("defs", ":first-child")
-          .attr("class", "svg-gooseneck")
-        .append("style")
-          .attr("type", "text/css");
+    [].forEach.call(svgs, function (svg) {
+
+      svg.setAttribute("version", "1.1");
+
+      var defsEl = document.createElement("defs");
+      svg.insertBefore(defsEl, svg.firstChild); //TODO   .insert("defs", ":first-child")
+      // defsEl.setAttribute("class", "svg-gooseneck");
+
+      var styleEl = document.createElement("style")
+      defsEl.appendChild(styleEl);
+      styleEl.setAttribute("type", "text/css");
+
 
       // removing attributes so they aren't doubled up
-      svg.node().removeAttribute("xmlns");
-      svg.node().removeAttribute("xlink");
+      svg.removeAttribute("xmlns");
+      svg.removeAttribute("xlink");
 
       // These are needed for the svg
-      if (!svg.node().hasAttributeNS(d3.ns.prefix.xmlns, "xmlns")) {
-        svg.node().setAttributeNS(d3.ns.prefix.xmlns, "xmlns", d3.ns.prefix.svg);
+      if (!svg.hasAttributeNS(prefix.xmlns, "xmlns")) {
+        svg.setAttributeNS(prefix.xmlns, "xmlns", prefix.svg);
       }
 
-      if (!svg.node().hasAttributeNS(d3.ns.prefix.xmlns, "xmlns:xlink")) {
-        svg.node().setAttributeNS(d3.ns.prefix.xmlns, "xmlns:xlink", d3.ns.prefix.xlink);
+      if (!svg.hasAttributeNS(prefix.xmlns, "xmlns:xlink")) {
+        svg.setAttributeNS(prefix.xmlns, "xmlns:xlink", prefix.xlink);
       }
 
-      var source = (new XMLSerializer()).serializeToString(svg.node()).replace('</style>', '<![CDATA[' + styles + ']]></style>');
-      var rect = svg.node().getBoundingClientRect();
+      var source = (new XMLSerializer()).serializeToString(svg).replace('</style>', '<![CDATA[' + styles + ']]></style>');
+      var rect = svg.getBoundingClientRect();
       svgInfo.push({
         top: rect.top,
         left: rect.left,
         width: rect.width,
-        height: rect.height,
-        class: svg.attr("class"),
-        id: svg.attr("id"),
-        childElementCount: svg.node().childElementCount,
+        height: .8*rect.height,
+        class: svg.getAttribute("class"),
+        id: svg.getAttribute("id"),
+        childElementCount: svg.childElementCount,
         source: [doctype + source]
       });
     });
@@ -172,39 +183,31 @@ function gooseneck() {
     } else if (window.document.title) {
       filename = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     }
+    var canvas = document.createElement("canvas");
+    canvas.setAttribute("id","savepng");
+    canvas.height = source.height;
+    canvas.width = source.width;
+    canvas.setAttribute("style","visibility:hidden;");
 
-    //var url = window.URL.createObjectURL(new Blob(source.source, { "type" : "image/svg+xml;base64" }));
-	 var canvas = document.createElement("canvas");
-	 canvas.setAttribute("id","savepng");
-	 canvas.setAttribute("height","550");
-	 canvas.setAttribute("width","900");
-	 canvas.setAttribute("style","visibility:hidden;");
-	// var ctx = canvas.getContext("2d")
-	
-	
-    //var canvas = document.querySelector("canvas#savepng"),
-  	  context = canvas.getContext("2d");
-	
-	var url = "data:image/svg+xml;base64," + btoa(source.source);
- 
+    context = canvas.getContext("2d");
+
+    var url = "data:image/svg+xml;base64," + btoa(source.source);
+
     var image = new Image;
     image.src = url;
     image.onload = function() {
-  	  context.drawImage(image, 0, 0);
- 
-  	  var canvasdata = canvas.toDataURL("image/png");
-  	  var a = document.createElement("a");
-	  a.id = "save";
-  	  a.download = filename + ".png";
-  	  a.href = canvasdata;
-  	  a.click();
+        context.drawImage(image, 0, 0, source.width, source.height);
+ 	var canvasdata = canvas.toDataURL("image/png");
+ 	var a = document.createElement("a");
+        a.id = "save";
+ 	a.download = filename + ".png";
+ 	a.href = canvasdata;
+ 	a.click();
     };
-
-     setTimeout(function() {
-       window.URL.revokeObjectURL(url);
-     }, 10);
-	
-	cleanup();
+    
+    setTimeout(function() {
+      window.URL.revokeObjectURL(url);
+    }, 10);
   }
 
   function getStyles(doc) {
